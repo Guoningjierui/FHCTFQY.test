@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>方回春堂 - 商品管理</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <!-- 顶部导航 -->
+  <header>
+    <nav>
+      <a href="index.html" class="logo">方回春堂</a>
+      <div class="nav-links">
+        <a href="index.html">首页</a>
+        <a href="tea.html">茶包</a>
+        <a href="ointment.html">膏方</a>
+        <a href="admin.html" class="active">商品管理</a>
+      </div>
+      <div class="user-info">
+        <span id="currentUser"></span>
+        <button class="btn-logout" onclick="logout()">退出</button>
+      </div>
+    </nav>
+  </header>
+
+  <div class="admin-container">
+    <h1 class="admin-title">商品管理</h1>
+    
+    <!-- 添加/编辑商品表单 -->
+    <div class="admin-form-card">
+      <h2 id="formTitle">添加商品</h2>
+      <form id="productForm">
+        <input type="hidden" id="productId">
+        
+        <!-- 基本信息 -->
+        <div class="form-section">
+          <h3>基本信息</h3>
+          <div class="form-row">
+            <div class="form-group">
+              <label>商品名称</label>
+              <input type="text" id="productName" placeholder="请输入商品名称">
+            </div>
+            <div class="form-group">
+              <label>分类</label>
+              <select id="productCategory">
+                <option value="">请选择分类</option>
+                <option value="tea">茶包</option>
+                <option value="ointment">膏方</option>
+              </select>
+            </div>
+          </div>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label>子分类</label>
+              <input type="text" id="productSubCategory" placeholder="如：养生茶、滋补膏">
+            </div>
+            <div class="form-group">
+              <label>规格</label>
+              <input type="text" id="productSpec" placeholder="如：15包/盒、250g/瓶">
+            </div>
+          </div>
+        </div>
+        
+        <!-- 产品基础信息 -->
+        <div class="form-section">
+          <h3>产品基础信息</h3>
+          <div class="form-row">
+            <div class="form-group">
+              <label>零售价</label>
+              <input type="number" id="productPrice" placeholder="请输入零售价" min="0" step="0.01">
+            </div>
+            <div class="form-group">
+              <label>原价</label>
+              <input type="number" id="productOriginalPrice" placeholder="请输入原价" min="0" step="0.01">
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label>配料</label>
+            <textarea id="productIngredients" placeholder="请输入配料信息" rows="2"></textarea>
+          </div>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label>保质期</label>
+              <input type="text" id="productExpiry" placeholder="如：24个月">
+            </div>
+            <div class="form-group">
+              <label>食用方法</label>
+              <input type="text" id="productUsage" placeholder="请输入食用方法">
+            </div>
+          </div>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label>不适宜人群</label>
+              <input type="text" id="productNotSuitable" placeholder="请输入不适宜人群">
+            </div>
+            <div class="form-group">
+              <label>适用人群</label>
+              <input type="text" id="productSuitable" placeholder="请输入适用人群">
+            </div>
+          </div>
+        </div>
+        
+        <!-- 产品介绍 -->
+        <div class="form-section">
+          <h3>产品介绍</h3>
+          <div class="form-group">
+            <label>产品描述</label>
+            <textarea id="productDescription" placeholder="请输入产品描述" rows="3"></textarea>
+          </div>
+          
+          <div class="form-group">
+            <label>产品卖点</label>
+            <textarea id="productFeatures" placeholder="请输入产品卖点，多个卖点用换行分隔" rows="3"></textarea>
+          </div>
+        </div>
+        
+        <!-- 产品图片 -->
+        <div class="form-section">
+          <h3>产品图片</h3>
+          <div class="form-group image-upload-group">
+            <div class="image-upload-area" id="imageUploadArea">
+              <input type="file" id="productImageInput" accept="image/*" style="display: none;">
+              <div class="upload-placeholder" id="uploadPlaceholder">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                  <polyline points="17 8 12 3 7 8"/>
+                  <line x1="12" y1="3" x2="12" y2="15"/>
+                </svg>
+                <p>点击上传产品图片</p>
+                <p class="upload-hint">支持 JPG、PNG 格式</p>
+              </div>
+              <div class="image-preview" id="imagePreview" style="display: none;">
+                <div class="preview-overlay">
+                  <span class="preview-tip">点击图片更换</span>
+                </div>
+                <img id="previewImage" src="" alt="预览">
+                <button class="remove-image-btn" onclick="removeImage()">移除图片</button>
+              </div>
+            </div>
+            <input type="hidden" id="productImage">
+          </div>
+        </div>
+        
+        <div class="form-actions">
+          <button type="submit" class="btn-primary">保存商品</button>
+          <button type="button" class="btn-secondary" id="cancelBtn">取消</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- 商品列表 -->
+    <div class="admin-list-card">
+      <div class="list-header">
+        <h2>商品列表</h2>
+        <div class="filter-row">
+          <select id="categoryFilter">
+            <option value="all">全部分类</option>
+            <option value="tea">茶包</option>
+            <option value="ointment">膏方</option>
+          </select>
+          <input type="text" id="searchInput" placeholder="搜索商品名称...">
+        </div>
+      </div>
+      
+      <div class="products-table-container">
+        <table class="products-table">
+          <thead>
+            <tr>
+              <th>图片</th>
+              <th>名称</th>
+              <th>分类</th>
+              <th>零售价</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody id="productsTableBody">
+            <!-- 商品列表将通过JS动态生成 -->
+          </tbody>
+        </table>
+      </div>
+      
+      <div id="emptyState" class="empty-state" style="display: none;">
+        <p>暂无商品，请点击上方表单添加商品</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- 页脚 -->
+  <footer>
+    <div class="footer-content">
+      <div class="footer-section">
+        <h3>关于方回春堂</h3>
+        <p>方回春堂始创于1649年，是杭州著名的百年老字号。三百多年来，始终坚持"遵古炮制、选料道地"的传统，为百姓提供优质的中医药服务和养生佳品。</p>
+      </div>
+      <div class="footer-section">
+        <h3>产品分类</h3>
+        <ul>
+          <li><a href="tea.html">养生茶包</a></li>
+          <li><a href="ointment.html">传统膏方</a></li>
+        </ul>
+      </div>
+      <div class="footer-section">
+        <h3>联系我们</h3>
+        <p>地址：杭州市上城区河坊街117号<br>电话：400-888-8888<br>营业时间：9:00-21:00</p>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>方回春堂 · 百年老字号 · 养生佳品</p>
+    </div>
+  </footer>
+
+  <script src="products.js"></script>
+  <script>
+    // 表单元素
+    const form = document.getElementById('productForm');
+    const formTitle = document.getElementById('formTitle');
+    const cancelBtn = document.getElementById('cancelBtn');
+    const categoryFilter = document.getElementById('categoryFilter');
+    const searchInput = document.getElementById('searchInput');
+    const tableBody = document.getElementById('productsTableBody');
+    const emptyState = document.getElementById('emptyState');
+    const imageUploadArea = document.getElementById('imageUploadArea');
+    const imageInput = document.getElementById('productImageInput');
+    const uploadPlaceholder = document.getElementById('uploadPlaceholder');
+    const imagePreview = document.getElementById('imagePreview');
+    const previewImage = document.getElementById('previewImage');
+    const productImage = document.getElementById('productImage');
+
+    // 表单字段
+    const productId = document.getElementById('productId');
+    const productName = document.getElementById('productName');
+    const productCategory = document.getElementById('productCategory');
+    const productSubCategory = document.getElementById('productSubCategory');
+    const productPrice = document.getElementById('productPrice');
+    const productOriginalPrice = document.getElementById('productOriginalPrice');
+    const productSpec = document.getElementById('productSpec');
+    const productDescription = document.getElementById('productDescription');
+    const productFeatures = document.getElementById('productFeatures');
+    const productIngredients = document.getElementById('productIngredients');
+    const productExpiry = document.getElementById('productExpiry');
+    const productUsage = document.getElementById('productUsage');
+    const productNotSuitable = document.getElementById('productNotSuitable');
+    const productSuitable = document.getElementById('productSuitable');
+
+    // 初始化
+    document.addEventListener('DOMContentLoaded', () => {
+      // 检查登录状态
+      if (!isLoggedIn() || !isAdmin()) {
+        window.location.href = 'login.html';
+        return;
+      }
+      
+      // 显示当前用户
+      const session = getLoginSession();
+      document.getElementById('currentUser').textContent = `管理员: ${session.username}`;
+      
+      renderProducts();
+      bindEvents();
+    });
+
+    // 绑定事件
+    function bindEvents() {
+      form.addEventListener('submit', handleFormSubmit);
+      cancelBtn.addEventListener('click', resetForm);
+      categoryFilter.addEventListener('change', renderProducts);
+      searchInput.addEventListener('input', renderProducts);
+      
+      // 图片上传 - 点击上传区域或预览区域都可以选择新图片
+      imageUploadArea.addEventListener('click', (e) => {
+        // 如果点击的是移除按钮，不触发文件选择
+        if (e.target.classList.contains('remove-image-btn')) {
+          return;
+        }
+        imageInput.click();
+      });
+      
+      imageInput.addEventListener('change', handleImageChange);
+    }
+
+    // 处理图片上传
+    function handleImageChange(e) {
+      const file = e.target.files[0];
+      if (file) {
+        handleImageUpload(file, function(base64) {
+          productImage.value = base64;
+          previewImage.src = base64;
+          uploadPlaceholder.style.display = 'none';
+          imagePreview.style.display = 'block';
+        });
+      }
+    }
+
+    // 移除图片
+    function removeImage() {
+      imageInput.value = '';
+      productImage.value = '';
+      previewImage.src = '';
+      uploadPlaceholder.style.display = 'flex';
+      imagePreview.style.display = 'none';
+    }
+
+    // 处理表单提交
+    function handleFormSubmit(e) {
+      e.preventDefault();
+      
+      const id = productId.value || generateId();
+      const category = productCategory.value;
+      
+      const product = {
+        id,
+        name: productName.value.trim(),
+        category,
+        subCategory: productSubCategory.value.trim(),
+        price: productPrice.value ? parseFloat(productPrice.value) : null,
+        originalPrice: productOriginalPrice.value ? parseFloat(productOriginalPrice.value) : null,
+        spec: productSpec.value.trim(),
+        description: productDescription.value.trim(),
+        features: productFeatures.value.trim() ? productFeatures.value.split('\n').map(f => f.trim()).filter(f => f) : [],
+        image: productImage.value.trim() || getDefaultImage(category),
+        ingredients: productIngredients.value.trim(),
+        expiry: productExpiry.value.trim(),
+        usage: productUsage.value.trim(),
+        notSuitable: productNotSuitable.value.trim(),
+        suitable: productSuitable.value.trim()
+      };
+
+      saveProduct(product);
+      resetForm();
+      renderProducts();
+      
+      alert('商品保存成功！');
+    }
+
+    // 生成唯一ID
+    function generateId() {
+      const timestamp = Date.now();
+      const random = Math.random().toString(36).substr(2, 5);
+      return `prod-${timestamp}-${random}`;
+    }
+
+    // 获取默认图片
+    function getDefaultImage(category) {
+      if (category === 'tea') {
+        return 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=Traditional%20Chinese%20herbal%20tea%20in%20elegant%20cup%20professional%20food%20photography&image_size=square';
+      } else {
+        return 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=Traditional%20Chinese%20medicine%20ointment%20paste%20in%20ceramic%20jar%20professional%20product%20photography&image_size=square';
+      }
+    }
+
+    // 重置表单
+    function resetForm() {
+      form.reset();
+      productId.value = '';
+      formTitle.textContent = '添加商品';
+      cancelBtn.style.display = 'none';
+      removeImage();
+    }
+
+    // 编辑商品
+    function editProduct(id) {
+      const product = getProductById(id);
+      if (!product) return;
+
+      productId.value = product.id;
+      productName.value = product.name;
+      productCategory.value = product.category;
+      productSubCategory.value = product.subCategory;
+      productPrice.value = product.price || '';
+      productOriginalPrice.value = product.originalPrice || '';
+      productSpec.value = product.spec;
+      productDescription.value = product.description;
+      productFeatures.value = product.features ? product.features.join('\n') : '';
+      productIngredients.value = product.ingredients || '';
+      productExpiry.value = product.expiry || '';
+      productUsage.value = product.usage || '';
+      productNotSuitable.value = product.notSuitable || '';
+      productSuitable.value = product.suitable || '';
+
+      // 图片处理
+      if (product.image) {
+        productImage.value = product.image;
+        previewImage.src = product.image;
+        uploadPlaceholder.style.display = 'none';
+        imagePreview.style.display = 'block';
+      } else {
+        removeImage();
+      }
+
+      formTitle.textContent = '编辑商品';
+      cancelBtn.style.display = 'inline-block';
+
+      // 滚动到表单
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // 删除商品
+    function deleteProduct(id) {
+      if (!confirm('确定要删除这个商品吗？')) return;
+      
+      const allProducts = getAllProducts();
+      const teaProducts = allProducts.tea.filter(p => p.id !== id);
+      const ointmentProducts = allProducts.ointment.filter(p => p.id !== id);
+      
+      saveAllProducts({ tea: teaProducts, ointment: ointmentProducts });
+      renderProducts();
+      
+      alert('商品删除成功！');
+    }
+
+    // 渲染商品列表
+    function renderProducts() {
+      const filter = categoryFilter.value;
+      const search = searchInput.value.toLowerCase();
+      const allProducts = getAllProducts();
+      
+      let products = [];
+      if (filter === 'all') {
+        products = [...allProducts.tea, ...allProducts.ointment];
+      } else {
+        products = [...allProducts[filter]];
+      }
+
+      // 搜索过滤
+      if (search) {
+        products = products.filter(p => p.name.toLowerCase().includes(search));
+      }
+
+      tableBody.innerHTML = '';
+
+      if (products.length === 0) {
+        emptyState.style.display = 'block';
+        return;
+      }
+
+      emptyState.style.display = 'none';
+
+      products.forEach(product => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td><img src="${product.image || getDefaultImage(product.category)}" alt="${product.name}" class="product-thumb"></td>
+          <td>${product.name || '-'}</td>
+          <td>${product.category === 'tea' ? '茶包' : '膏方'}</td>
+          <td>${product.price ? '¥' + product.price.toFixed(2) : '-'}</td>
+          <td>
+            <button class="btn-edit" onclick="editProduct('${product.id}')">编辑</button>
+            <button class="btn-delete" onclick="deleteProduct('${product.id}')">删除</button>
+          </td>
+        `;
+        tableBody.appendChild(row);
+      });
+    }
+
+    // 退出登录
+    function logout() {
+      clearLoginSession();
+      window.location.href = 'login.html';
+    }
+  </script>
+</body>
+</html>
